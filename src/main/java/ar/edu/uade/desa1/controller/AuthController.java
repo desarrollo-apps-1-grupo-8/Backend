@@ -31,8 +31,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }   
 
-    /*
-     *  @PostMapping("/recover")
+    @PostMapping("/recover")
     public ResponseEntity<String> recoverPassword(@RequestBody PasswordRecoveryRequest request) {
         authService.recoverPassword(request.getEmail());
         return ResponseEntity.ok("Se ha enviado un token de recuperación.");
@@ -43,7 +42,7 @@ public class AuthController {
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok("Contraseña actualizada correctamente.");
     }
-     */
+
    
 
 

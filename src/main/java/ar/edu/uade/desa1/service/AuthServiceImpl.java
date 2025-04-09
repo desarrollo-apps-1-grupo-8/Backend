@@ -11,8 +11,10 @@ import ar.edu.uade.desa1.exception.NotFoundException;
 import ar.edu.uade.desa1.exception.UserAlreadyExistsException;
 import ar.edu.uade.desa1.repository.RoleRepository;
 import ar.edu.uade.desa1.repository.UserRepository;
+import ar.edu.uade.desa1.domain.entity.PasswordResetToken;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import ar.edu.uade.desa1.repository.PasswordResetTokenRepository;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -84,8 +86,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     
-    /*
-     * @Autowired
+
+    @Autowired
     private PasswordResetTokenRepository tokenRepository;
 
     public void recoverPassword(String email) {
@@ -117,7 +119,7 @@ public class AuthServiceImpl implements AuthService {
         tokenRepository.delete(resetToken);
     }
     
-     */
+
     
 
 }
