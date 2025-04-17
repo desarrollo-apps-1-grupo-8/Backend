@@ -5,11 +5,14 @@ import ar.edu.uade.desa1.domain.entity.Role;
 import ar.edu.uade.desa1.domain.entity.User;
 import ar.edu.uade.desa1.domain.request.AuthLoginRequest;
 import ar.edu.uade.desa1.domain.request.AuthRegisterRequest;
+import ar.edu.uade.desa1.domain.request.SendVerificationCodeRequest;
 import ar.edu.uade.desa1.domain.response.AuthLoginResponse;
 import ar.edu.uade.desa1.domain.request.VerifyEmailRequest;
 import ar.edu.uade.desa1.domain.response.AuthRegisterResponse;
+import ar.edu.uade.desa1.domain.response.SendVerificationCodeResponse;
 import ar.edu.uade.desa1.domain.response.VerifyEmailResponse;
-import ar.edu.uade.desa1.exception.NotFoundException;
+import ar.edu.uade.desa1.exception.RoleNotFoundException;
+import ar.edu.uade.desa1.exception.UnauthorizedAccessException;
 import ar.edu.uade.desa1.exception.UserAlreadyExistsException;
 import ar.edu.uade.desa1.repository.RoleRepository;
 import ar.edu.uade.desa1.repository.UserRepository;
@@ -32,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     public static final String EMAIL_VERIFIED_SUCCESSFULLY = "Email verificado satisfactoriamente.";
     public static final String INVALID_VERIFICATION_CODE = "Código de verificación inválido o expirado.";
     public static final String EMAIL_ALREADY_VERIFIED = "Email ya verificado.";
-    
+    public static final String VERIFICATION_CODE_SENT = "Código de verificación enviado.";
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -51,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Role role = roleRepository.findById((request.getRoleId()))
-                .orElseThrow(() -> new NotFoundException("Role id " + request.getRoleId() + " does not exists."));
+                .orElseThrow(() -> new RoleNotFoundException(request.getRoleId()));
 
         // Generate verification code
         String verificationCode = generateVerificationCode();
@@ -85,21 +88,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthLoginResponse login(AuthLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-
-            System.out.println("EMAIL ingresado: " + request.getEmail());
-            System.out.println("PASS ingresada: " + request.getPassword());
-            System.out.println("PASS encriptada en BD: " + user.getPassword());
-            System.out.println("¿Coinciden?: " + passwordEncoder.matches(request.getPassword(), user.getPassword()));
+            .orElseThrow(() -> new UsernameNotFoundException(request.getEmail()));
         
-    
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Contraseña incorrecta");
+            throw new BadCredentialsException("Una de las credenciales es incorrecta");
         }
-    
+
+        if ("false".equals(user.getActive())) {
+            throw new UnauthorizedAccessException("Usuario no activo");
+        }
+
         String token = jwtUtil.generateToken(user.getEmail());
     
-        return new AuthLoginResponse(token);//se genera y devuelve el token
+        return new AuthLoginResponse(token); //se genera y devuelve el token
     }
 
     
@@ -135,14 +136,12 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         tokenRepository.delete(resetToken);
     }
-    
      */
     
-
     @Override
     public VerifyEmailResponse verifyEmail(VerifyEmailRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new NotFoundException("Usuario con email " + request.getEmail() + " no encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException(request.getEmail()));
         
         if (user.getEmailVerified() != null && user.getEmailVerified()) {
             return VerifyEmailResponse.builder()
@@ -174,6 +173,33 @@ public class AuthServiceImpl implements AuthService {
         return VerifyEmailResponse.builder()
                 .success(false)
                 .message(INVALID_VERIFICATION_CODE)
+                .build();
+    }
+    
+    @Override
+    public SendVerificationCodeResponse sendVerificationCode(SendVerificationCodeRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException(request.getEmail()));
+        
+        if (user.getEmailVerified() != null && user.getEmailVerified()) {
+             return SendVerificationCodeResponse.builder()
+                    .success(false)
+                    .message(EMAIL_ALREADY_VERIFIED)
+                    .build();
+        }
+        
+        String verificationCode = generateVerificationCode();
+        LocalDateTime verificationCodeExpiry = LocalDateTime.now().plusMinutes(expirationMinutes);
+        
+        user.setVerificationCode(verificationCode);
+        user.setVerificationCodeExpiry(verificationCodeExpiry);
+        userRepository.save(user);
+        
+        emailService.sendVerificationEmail(user.getEmail(), user.getFirstName(), verificationCode);
+        
+        return SendVerificationCodeResponse.builder()
+                .success(true)
+                .message(VERIFICATION_CODE_SENT)
                 .build();
     }
     

@@ -4,17 +4,18 @@ import ar.edu.uade.desa1.domain.entity.DeliveryRoute;
 import ar.edu.uade.desa1.domain.request.CreateRouteRequest;
 import ar.edu.uade.desa1.domain.request.UpdateRouteStatusRequest;
 import ar.edu.uade.desa1.service.DeliveryRouteService;
-import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/routes")
-@RequiredArgsConstructor
 public class DeliveryRouteController {
 
-    private final DeliveryRouteService deliveryRouteService;
+    @Autowired
+    private DeliveryRouteService deliveryRouteService;
 
     @PostMapping
     public ResponseEntity<DeliveryRoute> createRoute(@RequestBody CreateRouteRequest request) {

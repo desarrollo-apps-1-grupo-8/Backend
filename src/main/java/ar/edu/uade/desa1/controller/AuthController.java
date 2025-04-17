@@ -3,9 +3,12 @@ package ar.edu.uade.desa1.controller;
 import ar.edu.uade.desa1.domain.request.*;
 import ar.edu.uade.desa1.domain.response.AuthLoginResponse;
 import ar.edu.uade.desa1.domain.response.AuthRegisterResponse;
+import ar.edu.uade.desa1.domain.response.SendVerificationCodeResponse;
 import ar.edu.uade.desa1.domain.response.VerifyEmailResponse;
-import ar.edu.uade.desa1.service.AuthServiceImpl;
+import ar.edu.uade.desa1.service.AuthService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +17,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthServiceImpl authService;
+    @Autowired
+    private AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthRegisterResponse> register(@RequestBody AuthRegisterRequest request) {
@@ -39,7 +43,13 @@ public class AuthController {
         return ResponseEntity.ok("Contraseña actualizada correctamente.");
     }
 */
-    @PostMapping("/verify-email")
+
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<SendVerificationCodeResponse> sendVerificationCode(@RequestBody SendVerificationCodeRequest request) {
+        return ResponseEntity.ok(authService.sendVerificationCode(request));
+    }
+
+    @PostMapping("/verify-code")
     public ResponseEntity<VerifyEmailResponse> verifyEmail(@RequestBody VerifyEmailRequest request) {
         return ResponseEntity.ok(authService.verifyEmail(request));
     }
