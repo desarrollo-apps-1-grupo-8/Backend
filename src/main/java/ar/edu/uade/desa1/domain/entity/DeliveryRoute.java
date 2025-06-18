@@ -45,6 +45,12 @@ public class DeliveryRoute {
     @Column
     private LocalDateTime updatedAt;
 
+    @Column
+    private String qr;
+
+    @Column
+    private boolean qrScanned;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

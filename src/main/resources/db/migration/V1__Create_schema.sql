@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS routes (
     delivery_user_id BIGINT,
     created_at DATE NOT NULL,
     updated_at DATE,
+    qr VARCHAR(255),
+    qr_scanned BOOLEAN,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (delivery_user_id) REFERENCES users(id)
 );
