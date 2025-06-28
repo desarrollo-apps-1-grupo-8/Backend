@@ -26,32 +26,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/h2-console/**",
-                                "/api/v1/register",
-                                "/api/v1/login",
-                                "/api/v1/reset-password",
-                                "/api/v1/send-verification-code",
-                                "/api/v1/verify-code",
-                                "/api/v1/validate-reset-token"
-                        ).permitAll()
+        .csrf(csrf -> csrf.disable())
+        .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(
+                "/",
+                "/qr",
+                "/h2-console/**",
+                "/api/v1/register",
+                "/api/v1/login",
+                "/api/v1/reset-password",
+                "/api/v1/send-verification-code",
+                "/api/v1/verify-code",
+                "/api/v1/validate-reset-token"
+            ).permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/v1/routes/update-status").hasRole(REPARTIDOR)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/routes").hasRole(REPARTIDOR)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/user/**").hasRole(USUARIO)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/history/**").hasAnyRole(USUARIO, REPARTIDOR)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/routes").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/qr").hasAnyRole(REPARTIDOR)
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults());
+            .requestMatchers(HttpMethod.GET, "/api/v1/routes/qr").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/v1/routes").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/v1/routes/update-status").hasRole(REPARTIDOR)
+            .requestMatchers(HttpMethod.GET, "/api/v1/routes/user/**").hasRole(USUARIO)
+            .requestMatchers(HttpMethod.GET, "/api/v1/routes/history/**").hasAnyRole(USUARIO, REPARTIDOR)
+            
+            .requestMatchers(HttpMethod.GET, "/api/v1/routes").hasRole(REPARTIDOR)
+            .requestMatchers(HttpMethod.GET, "/api/v1/routes/**").authenticated()
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .formLogin(form -> form.disable())
+        .httpBasic(basic -> basic.disable());
 
-        return http.build();
+    return http.build();
     }
 
 }
