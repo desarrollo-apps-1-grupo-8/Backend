@@ -45,6 +45,9 @@ public class DeliveryRoute {
     @Column
     private LocalDateTime updatedAt;
 
+    @Column(length = 6)
+    private String completionCode;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
