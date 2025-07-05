@@ -51,6 +51,9 @@ public class DeliveryRoute {
     @Column
     private boolean qrScanned;
 
+    @Column(length = 6)
+    private String completionCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scanned_user_id")
     private User scannedUser;
