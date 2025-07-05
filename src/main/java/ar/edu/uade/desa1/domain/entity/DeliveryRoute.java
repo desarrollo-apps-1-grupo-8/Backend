@@ -51,6 +51,10 @@ public class DeliveryRoute {
     @Column
     private boolean qrScanned;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scanned_user_id")
+    private User scannedUser;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
