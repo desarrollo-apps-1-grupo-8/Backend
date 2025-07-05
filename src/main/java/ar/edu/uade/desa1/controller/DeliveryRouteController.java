@@ -1,14 +1,20 @@
 package ar.edu.uade.desa1.controller;
 
 import ar.edu.uade.desa1.domain.entity.DeliveryRoute;
+import ar.edu.uade.desa1.domain.enums.RouteStatus;
 import ar.edu.uade.desa1.domain.request.CreateRouteRequest;
 import ar.edu.uade.desa1.domain.request.UpdateRouteStatusRequest;
 import ar.edu.uade.desa1.domain.response.DeliveryRouteResponse;
 import ar.edu.uade.desa1.service.DeliveryRouteService;
+import ar.edu.uade.desa1.service.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -17,6 +23,7 @@ import org.springframework.security.core.Authentication;
 public class DeliveryRouteController {
 
     private final DeliveryRouteService deliveryRouteService;
+    private final QrCodeService qrCodeService;
 
     @PostMapping
     public ResponseEntity<DeliveryRoute> createRoute(@RequestBody CreateRouteRequest request) {
@@ -44,7 +51,20 @@ public class DeliveryRouteController {
     }
 
     @PostMapping("/update-status")
-    public ResponseEntity<DeliveryRouteResponse> updateRouteStatus(@RequestBody UpdateRouteStatusRequest request) {
+    public ResponseEntity<?> updateRouteStatus(@RequestBody UpdateRouteStatusRequest request) {
+        // Check if trying to complete a route
+        if (RouteStatus.COMPLETED.toString().equals(request.getStatus())) {
+            // Get the route to validate the completion code
+            DeliveryRoute route = deliveryRouteService.getRouteById(request.getDeliveryRouteId());
+            
+            // Validate the completion code
+            if (request.getCompletionCode() == null || !request.getCompletionCode().equals(route.getCompletionCode())) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Código de completado inválido. Consultar al destinatario.");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+        }
+        
         return ResponseEntity.ok(deliveryRouteService.updateRouteStatus(
             request.getDeliveryRouteId(), 
             request.getStatus(),
@@ -55,6 +75,16 @@ public class DeliveryRouteController {
     @GetMapping("/history/{userId}")
     public ResponseEntity<List<DeliveryRouteResponse>> getCompletedRoutes(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(deliveryRouteService.getCompletedRoutesByUser(userId));
+    }
+
+    @GetMapping("/qr")
+    public ResponseEntity<Map<String, String>> generateQrCode(@RequestParam("routeId") Long routeId) {
+
+        String base64Image = qrCodeService.generateQRCodeAsBase64(routeId);
+        Map<String, String> response = new HashMap<>();
+        response.put("qrCodeBase64", base64Image);
+
+        return ResponseEntity.ok(response);
     }
 }
 
