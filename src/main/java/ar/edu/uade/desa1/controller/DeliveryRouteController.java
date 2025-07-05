@@ -64,7 +64,7 @@ public class DeliveryRouteController {
     }
 
     @GetMapping("/qr")
-    public ResponseEntity<Map<String, String>> generateQrCode(@RequestParam Long routeId) {
+    public ResponseEntity<Map<String, String>> generateQrCode(@RequestParam("routeId") Long routeId) {
 
         String base64Image = qrCodeService.generateQRCodeAsBase64(routeId);
         Map<String, String> response = new HashMap<>();
