@@ -42,6 +42,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     .status(request.getStatus())
                     .user(user)
                     .createdAt(LocalDateTime.now())
+                    .qrScanned(false)
                     .build();
 
             return deliveryRouteRepository.save(route);
@@ -56,9 +57,9 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
         try {
             var routes = deliveryRouteRepository.findAll();
 
-            return routes.stream().map(route -> DeliveryRouteResponse.builder()
+            return routes.stream().filter(r -> r.getDeliveryUser() == null).map(route -> DeliveryRouteResponse.builder()
                     .id(route.getId())
-                    .userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
+                    //.userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
                     .packageInfo(route.getPackageInfo())
                     .origin(route.getOrigin())
                     .destination(route.getDestination())
@@ -214,4 +215,14 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             throw new RuntimeException("Error getting all routes for delivery user: " + e.getMessage());
         }    
   }
+
+    @Override
+    @Transactional
+    public void assignQrToRoute(Long routeId, String qrUuid) {
+        DeliveryRoute route = deliveryRouteRepository.findById(routeId)
+                .orElseThrow(() -> new NotFoundException("Route with id " + routeId + " not found"));
+
+        route.setQr(qrUuid);
+        deliveryRouteRepository.save(route);
+    }
 }
