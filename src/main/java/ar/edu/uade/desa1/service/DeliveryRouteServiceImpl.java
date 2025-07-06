@@ -42,7 +42,6 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     .status(request.getStatus())
                     .user(user)
                     .createdAt(LocalDateTime.now())
-                    .qrScanned(false)
                     .build();
 
             return deliveryRouteRepository.save(route);
@@ -58,8 +57,8 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             var routes = deliveryRouteRepository.findAll();
 
             return routes.stream().filter(r -> r.getDeliveryUser() == null).map(route -> DeliveryRouteResponse.builder()
-                    .id(route.getId())
-                    //.userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
+                    .id(route.getId()).
+                    userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
                     .packageInfo(route.getPackageInfo())
                     .origin(route.getOrigin())
                     .destination(route.getDestination())
@@ -78,7 +77,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("User not found for id: " + userId));
             
-            boolean isRegularUser = "Usuario".equals(user.getRole().getName());
+            boolean isRegularUser = user.getRole().getName().equalsIgnoreCase("USUARIO");
             var routes = deliveryRouteRepository.findByUserId(userId);
 
             return routes.stream().map(route -> {
@@ -120,7 +119,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
     
     @Override
     @Transactional
-    public DeliveryRouteResponse updateRouteStatus(Long routeId, String status, Long deliveryUserId) {
+    public DeliveryRouteResponse updateRouteStatus(Long routeId, String status, Long deliveryUserId, String completionCode) {
         try {
             User deliveryUser = userRepository.findById(deliveryUserId)
                     .orElseThrow(() -> new NotFoundException("Delivery user not found for id: " + deliveryUserId));
@@ -134,6 +133,13 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
 
             RouteStatus newStatus = RouteStatus.valueOf(status);
             
+            if (RouteStatus.COMPLETED == newStatus) {
+                if (completionCode == null || !completionCode.equals(route.getCompletionCode())) {
+                    throw new RuntimeException("Código de entrega inválido. Verificar con el destinatario.");
+                }
+                route.setCompletionCode(null);
+            }
+            
             // Generate random code when status changes to IN_PROGRESS
             if (RouteStatus.IN_PROGRESS == newStatus) {
                 route.setDeliveryUser(deliveryUser);
@@ -144,11 +150,6 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             route.setUpdatedAt(LocalDateTime.now());
             DeliveryRoute savedRoute = deliveryRouteRepository.save(route);
 
-            // Determinar si el usuario actual es el propietario del paquete
-            boolean isPackageOwner = savedRoute.getUser().getId().equals(deliveryUserId);
-            // Determinar si el usuario actual tiene rol USUARIO
-            boolean isRegularUser = "Usuario".equals(savedRoute.getUser().getRole().getName());
-            
             return DeliveryRouteResponse.builder()
                     .id(savedRoute.getId())
                     .packageInfo(savedRoute.getPackageInfo())
@@ -159,7 +160,6 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     .deliveryUserInfo(savedRoute.getDeliveryUser() != null ? savedRoute.getDeliveryUser().getFirstName() + " " + savedRoute.getDeliveryUser().getLastName(): null)
                     .createdAt(savedRoute.getCreatedAt())
                     .updatedAt(savedRoute.getUpdatedAt())
-                    .completionCode(isPackageOwner && isRegularUser ? savedRoute.getCompletionCode() : null)
                     .build();
 
         } catch (NotFoundException e) {
@@ -176,7 +176,6 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("User not found for id: " + userId));
                     
-            boolean isRegularUser = "Usuario".equals(user.getRole().getName());
             List<DeliveryRoute> routes = deliveryRouteRepository.findByUserIdAndStatus(userId, RouteStatus.COMPLETED.toString());
 
             return routes.stream().map(route -> DeliveryRouteResponse.builder()
@@ -188,7 +187,6 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     .createdAt(route.getCreatedAt())
                     .updatedAt(route.getUpdatedAt())
                     .status(route.getStatus())
-                    .completionCode(isRegularUser ? route.getCompletionCode() : null)
                     .build()).toList();
 
         } catch (Exception e) {
@@ -201,28 +199,20 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
         try {
             var routes = deliveryRouteRepository.findByDeliveryUserId(deliveryUserId);
 
-            return routes.stream().map(route -> DeliveryRouteResponse.builder()
-                    .id(route.getId())
-                    .userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
-                    .packageInfo(route.getPackageInfo())
-                    .origin(route.getOrigin())
-                    .destination(route.getDestination())
-                    .createdAt(route.getCreatedAt())
-                    .updatedAt(route.getUpdatedAt())
-                    .status(route.getStatus())
-                    .build()).toList();
+            return routes.stream()
+                    .filter(route -> RouteStatus.IN_PROGRESS.equals(route.getStatus()))
+                    .map(route -> DeliveryRouteResponse.builder()
+                            .id(route.getId())
+                            .userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
+                            .packageInfo(route.getPackageInfo())
+                            .origin(route.getOrigin())
+                            .destination(route.getDestination())
+                            .createdAt(route.getCreatedAt())
+                            .updatedAt(route.getUpdatedAt())
+                            .status(route.getStatus())
+                            .build()).toList();
         } catch (Exception e) {
             throw new RuntimeException("Error getting all routes for delivery user: " + e.getMessage());
         }    
   }
-
-    @Override
-    @Transactional
-    public void assignQrToRoute(Long routeId, String qrUuid) {
-        DeliveryRoute route = deliveryRouteRepository.findById(routeId)
-                .orElseThrow(() -> new NotFoundException("Route with id " + routeId + " not found"));
-
-        route.setQr(qrUuid);
-        deliveryRouteRepository.save(route);
-    }
 }
