@@ -14,4 +14,15 @@ public class CreateRouteRequest {
     private String destination;
     private RouteStatus status;
     private Long userId;
+
+    private Long deliveryUserId;
+
+    public Long getDeliveryUserId() {
+        return deliveryUserId;
+    }
+
+    public void setDeliveryUserId(Long deliveryUserId) {
+        this.deliveryUserId = deliveryUserId;
+    }
+
 } 

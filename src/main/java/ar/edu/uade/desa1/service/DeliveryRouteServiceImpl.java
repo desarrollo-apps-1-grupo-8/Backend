@@ -4,6 +4,9 @@ import ar.edu.uade.desa1.domain.entity.DeliveryRoute;
 import ar.edu.uade.desa1.domain.entity.User;
 import ar.edu.uade.desa1.domain.enums.RouteStatus;
 import ar.edu.uade.desa1.domain.request.CreateRouteRequest;
+
+import ar.edu.uade.desa1.domain.request.UpdateRouteStatusRequest;
+
 import ar.edu.uade.desa1.domain.response.DeliveryRouteResponse;
 import ar.edu.uade.desa1.exception.NotFoundException;
 import ar.edu.uade.desa1.repository.DeliveryRouteRepository;
@@ -12,11 +15,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
-import ar.edu.uade.desa1.exception.BadRequestException;
+
+
+import ar.edu.uade.desa1.service.FirebaseMessagingService;
+import ar.edu.uade.desa1.service.TokenStorageService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import ar.edu.uade.desa1.exception.BadRequestException;
+
+
+
 import java.util.Random;
+
 
 import static java.util.stream.Collectors.toList;
 
@@ -26,6 +38,10 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
 
     private final DeliveryRouteRepository deliveryRouteRepository;
     private final UserRepository userRepository;
+
+    private final TokenStorageService tokenStorageService;
+    private final FirebaseMessagingService firebaseMessagingService;
+
     private final Random random = new Random();
 
     @Override
@@ -38,6 +54,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             throw new BadRequestException("You can only create a route for users with role 'usuario'");
         }
 
+
         try {
             DeliveryRoute route = DeliveryRoute.builder()
                     .packageInfo(request.getPackageInfo())
@@ -48,12 +65,37 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            return deliveryRouteRepository.save(route);
+
+            DeliveryRoute savedRoute = deliveryRouteRepository.save(route);
+
+            
+            // Notificar si la ruta está disponible
+            if (route.getStatus() == RouteStatus.AVAILABLE) {
+                 
+
+                String token = tokenStorageService.getAnyAvailableDeliveryToken();
+                  
+                if (token != null) {
+                    try {
+                        firebaseMessagingService.sendNotification(
+                                "Nueva ruta disponible",
+                                "Hay una entrega esperando ser tomada",
+                                token, "Shipments"
+                        );
+                    } catch (Exception e) {
+                        System.err.println("Error enviando notificación FCM: " + e.getMessage());
+                    }
+                }
+            }
+
+            return savedRoute;
+
 
         } catch (Exception e) {
             throw new RuntimeException("Error creating route: " + e.getMessage());
         }
     }
+
 
     @Override
     public List<DeliveryRouteResponse> getAllRoutes() {
@@ -75,13 +117,16 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
         }
     }
 
+
     @Override
     public List<DeliveryRouteResponse> getAllRoutesByUserId(Long userId) {
         try {
+
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("User not found for id: " + userId));
             
             boolean isRegularUser = user.getRole().getName().equalsIgnoreCase("USUARIO");
+
             var routes = deliveryRouteRepository.findByUserId(userId);
 
             return routes.stream().map(route -> {
@@ -96,9 +141,11 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     .createdAt(route.getCreatedAt())
                     .updatedAt(route.getUpdatedAt())
                     .status(route.getStatus())
+
                     .completionCode(isRegularUser ? route.getCompletionCode() : null)
                     .build();
             }).toList();
+
         } catch (Exception e) {
             throw new RuntimeException("Error getting all routes for user: " + e.getMessage());
         }
@@ -115,6 +162,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             throw new RuntimeException("Error getting route by id: " + e.getMessage());
         }
     }
+
     
     private String generateRandomCode() {
         int code = 100000 + random.nextInt(900000); // Generates a number between 100000 and 999999
@@ -174,12 +222,15 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
     }
 
 
+
     @Override
     public List<DeliveryRouteResponse> getCompletedRoutesByUser(Long userId) {
         try {
+
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("User not found for id: " + userId));
                     
+
             List<DeliveryRoute> routes = deliveryRouteRepository.findByUserIdAndStatus(userId, RouteStatus.COMPLETED.toString());
 
             return routes.stream().map(route -> DeliveryRouteResponse.builder()
@@ -203,6 +254,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
         try {
             var routes = deliveryRouteRepository.findByDeliveryUserId(deliveryUserId);
 
+
             return routes.stream()
                     .filter(route -> RouteStatus.IN_PROGRESS.equals(route.getStatus()))
                     .map(route -> DeliveryRouteResponse.builder()
@@ -215,6 +267,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                             .updatedAt(route.getUpdatedAt())
                             .status(route.getStatus())
                             .build()).toList();
+
         } catch (Exception e) {
             throw new RuntimeException("Error getting all routes for delivery user: " + e.getMessage());
         }    

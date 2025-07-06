@@ -12,5 +12,10 @@ public class UpdateRouteStatusRequest {
     private Long deliveryRouteId;
     private String status;
     private Long deliveryUserId;
+
+    private String origin; 
+    private String destination;
+
     private String completionCode;
+
 } 

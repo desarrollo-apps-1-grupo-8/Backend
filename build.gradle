@@ -33,10 +33,21 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	implementation 'org.flywaydb:flyway-core'
+
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+	implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+	implementation 'org.json:json:20240303'
+
+	
+
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'io.nayuki:qrcodegen:1.8.0'
+
 
 	// JWT Dependencies
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -50,6 +61,15 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'com.google.firebase' && details.requested.name == 'firebase-admin') {
+            details.useVersion '9.2.0'
+        }
+    }
+}
+
 
 tasks.named('test') {
 	useJUnitPlatform()
