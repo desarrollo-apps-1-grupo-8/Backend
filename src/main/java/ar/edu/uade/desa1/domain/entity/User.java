@@ -66,8 +66,10 @@ public class User implements UserDetails {
     @Column(name = "email_verified")
     private Boolean emailVerified;
 
+
     @Column(name = "push_token")
     private String pushToken;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,6 +81,7 @@ public class User implements UserDetails {
         return this.email;
     }
 
+
     public String getPushToken() {
     return pushToken;
     }
@@ -87,4 +90,5 @@ public class User implements UserDetails {
     this.pushToken = pushToken;
     }
    
+
 }

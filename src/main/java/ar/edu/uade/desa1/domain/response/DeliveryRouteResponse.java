@@ -23,6 +23,9 @@ public class DeliveryRouteResponse {
     private String userInfo;
     private String deliveryUserInfo;
 
+    private String completionCode;
+
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
