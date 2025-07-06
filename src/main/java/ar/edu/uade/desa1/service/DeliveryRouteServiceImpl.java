@@ -12,6 +12,7 @@ import ar.edu.uade.desa1.exception.NotFoundException;
 import ar.edu.uade.desa1.repository.DeliveryRouteRepository;
 import ar.edu.uade.desa1.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
@@ -171,22 +172,34 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
     
     @Override
     @Transactional
-    public DeliveryRouteResponse updateRouteStatus(Long routeId, String status, Long deliveryUserId, String completionCode) {
+    public DeliveryRouteResponse updateRouteStatus(UpdateRouteStatusRequest request) {
         try {
-            User deliveryUser = userRepository.findById(deliveryUserId)
-                    .orElseThrow(() -> new NotFoundException("Delivery user not found for id: " + deliveryUserId));
+            User deliveryUser = userRepository.findById(request.getDeliveryRouteId())
+                    .orElseThrow(() -> new NotFoundException("Delivery user not found for id: " + request.getDeliveryUserId()));
 
-            DeliveryRoute route = deliveryRouteRepository.findById(routeId)
-                    .orElseThrow(() -> new NotFoundException("Route with id " + routeId + " not found"));
+            DeliveryRoute route = deliveryRouteRepository.findById(request.getDeliveryRouteId())
+                    .orElseThrow(() -> new NotFoundException("Route with id " + request.getDeliveryRouteId() + " not found"));
 
-            if (route.getDeliveryUser() != null && !route.getDeliveryUser().getId().equals(deliveryUserId)) {
+            String oldOrigin = route.getOrigin();
+            String oldDestination = route.getDestination();
+
+            // Si vienen valores nuevos en la request, actualizarlos
+            if (request.getOrigin() != null) {
+                route.setOrigin(request.getOrigin());
+            }
+
+            if (request.getDestination() != null) {
+                route.setDestination(request.getDestination());
+            }
+
+            if (route.getDeliveryUser() != null && !route.getDeliveryUser().getId().equals(request.getDeliveryUserId())) {
                 throw new RuntimeException("Only the assigned delivery user can change the route status");
             }
 
-            RouteStatus newStatus = RouteStatus.valueOf(status);
+            RouteStatus newStatus = RouteStatus.valueOf(request.getStatus());
             
             if (RouteStatus.COMPLETED == newStatus) {
-                if (completionCode == null || !completionCode.equals(route.getCompletionCode())) {
+                if (request.getCompletionCode() == null || !request.getCompletionCode().equals(route.getCompletionCode())) {
                     throw new RuntimeException("Código de entrega inválido. Verificar con el destinatario.");
                 }
                 route.setCompletionCode(null);
@@ -201,6 +214,30 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             route.setStatus(newStatus);
             route.setUpdatedAt(LocalDateTime.now());
             DeliveryRoute savedRoute = deliveryRouteRepository.save(route);
+
+            // Comparar cambios
+            boolean originChanged = oldOrigin != null && !oldOrigin.equals(savedRoute.getOrigin());
+            boolean destinationChanged = oldDestination != null && !oldDestination.equals(savedRoute.getDestination());
+
+            if (savedRoute.getStatus() == RouteStatus.IN_PROGRESS &&
+                    savedRoute.getDeliveryUser() != null &&
+                    (originChanged || destinationChanged)) {
+
+                String token = tokenStorageService.getToken(savedRoute.getDeliveryUser().getId().toString());
+                if (token != null) {
+                    try {
+                        firebaseMessagingService.sendNotification(
+                                "¡Ruta actualizada!",
+                                "Se modificó el origen o destino de tu entrega.",
+                                token, "MyRoutes"
+                        );
+                    } catch (Exception e) {
+                        System.err.println("Error enviando notificación de cambio de ruta: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("Repartidor sin token registrado.");
+                }
+            }
 
             return DeliveryRouteResponse.builder()
                     .id(savedRoute.getId())

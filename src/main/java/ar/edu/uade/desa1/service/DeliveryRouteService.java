@@ -16,7 +16,7 @@ public interface DeliveryRouteService {
     List<DeliveryRouteResponse> getAllRoutesByUserId(Long userId);
     DeliveryRoute getRouteById(Long id);
 
-    DeliveryRouteResponse updateRouteStatus(Long routeId, String status, Long deliveryUserId, String completionCode);
+    DeliveryRouteResponse updateRouteStatus(UpdateRouteStatusRequest request);
 
     List<DeliveryRouteResponse> getCompletedRoutesByUser(Long userId);
     List<DeliveryRouteResponse> getAllRoutesByDeliveryUserId(Long deliveryUserId);

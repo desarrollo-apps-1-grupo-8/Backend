@@ -75,12 +75,7 @@ public class DeliveryRouteController {
     @PostMapping("/update-status")
 
     public ResponseEntity<?> updateRouteStatus(@RequestBody UpdateRouteStatusRequest request) {
-        return ResponseEntity.ok(deliveryRouteService.updateRouteStatus(
-            request.getDeliveryRouteId(), 
-            request.getStatus(),
-            request.getDeliveryUserId(),
-            request.getCompletionCode()
-        ));
+        return ResponseEntity.ok(deliveryRouteService.updateRouteStatus(request));
     }
 
 
