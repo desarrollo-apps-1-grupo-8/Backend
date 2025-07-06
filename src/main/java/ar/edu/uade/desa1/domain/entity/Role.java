@@ -14,13 +14,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Role {
 
-    /*
-
-    INSERT INTO ROLES(name) VALUES('Repartidor');
-    INSERT INTO ROLES(name) VALUES('Usuario');
-
-     */
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

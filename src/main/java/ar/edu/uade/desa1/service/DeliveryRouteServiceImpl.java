@@ -34,8 +34,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found for id: " + request.getUserId()));
-        /// //////////////$###########################
-        if (user.getRole() == null || user.getRole().getId() != 1) {
+        if (user.getRole() == null || user.getRole().getId() != 2) {
             throw new BadRequestException("You can only create a route for users with role 'usuario'");
         }
 
