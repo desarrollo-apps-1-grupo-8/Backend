@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
+import ar.edu.uade.desa1.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +34,10 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found for id: " + request.getUserId()));
+        /// //////////////$###########################
+        if (user.getRole() == null || user.getRole().getId() != 1) {
+            throw new BadRequestException("You can only create a route for users with role 'usuario'");
+        }
 
         try {
             DeliveryRoute route = DeliveryRoute.builder()
