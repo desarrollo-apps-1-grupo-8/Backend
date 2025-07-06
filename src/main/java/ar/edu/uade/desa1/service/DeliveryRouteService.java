@@ -12,8 +12,7 @@ public interface DeliveryRouteService {
     List<DeliveryRouteResponse> getAllRoutes();
     List<DeliveryRouteResponse> getAllRoutesByUserId(Long userId);
     DeliveryRoute getRouteById(Long id);
-    DeliveryRouteResponse updateRouteStatus(Long routeId, String status, Long deliveryUserId);
+    DeliveryRouteResponse updateRouteStatus(Long routeId, String status, Long deliveryUserId, String completionCode);
     List<DeliveryRouteResponse> getCompletedRoutesByUser(Long userId);
     List<DeliveryRouteResponse> getAllRoutesByDeliveryUserId(Long deliveryUserId);
-    void assignQrToRoute(Long routeId, String qrUuid);
 }

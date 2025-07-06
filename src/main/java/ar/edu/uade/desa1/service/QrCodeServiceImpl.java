@@ -9,30 +9,22 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class QrCodeServiceImpl implements QrCodeService {
 
     private static int IMAGE_SIZE = 300;
-    private final DeliveryRouteService deliveryRouteService;
 
     @Override
     public String generateQRCodeAsBase64(Long routeId) {
         try {
-            linkQrWithRoute(routeId);
             QrCode qrCode = QrCode.encodeText(String.valueOf(routeId), QrCode.Ecc.MEDIUM);
             BufferedImage image = toImage(qrCode, IMAGE_SIZE);
             return imageToBase64(image);
         } catch (IOException e) {
             throw new RuntimeException("Failed to generate QR code", e);
         }
-    }
-
-    private void linkQrWithRoute(Long routeId) {
-        String qrUuid = UUID.randomUUID().toString();
-        deliveryRouteService.assignQrToRoute(routeId, qrUuid);
     }
 
     private BufferedImage toImage(QrCode qrCode, int size) {
