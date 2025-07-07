@@ -1,33 +1,20 @@
 package ar.edu.uade.desa1.controller;
 
 import ar.edu.uade.desa1.domain.entity.DeliveryRoute;
-
-import ar.edu.uade.desa1.domain.enums.RouteStatus;
-
 import ar.edu.uade.desa1.domain.request.CreateRouteRequest;
 import ar.edu.uade.desa1.domain.request.UpdateRouteStatusRequest;
 import ar.edu.uade.desa1.domain.response.DeliveryRouteResponse;
 import ar.edu.uade.desa1.service.DeliveryRouteService;
-
-
-import org.springframework.web.bind.annotation.*;
-
-import org.springframework.security.core.Authentication;
-import ar.edu.uade.desa1.service.TokenStorageService;
 import ar.edu.uade.desa1.service.FirebaseMessagingService;
-
-
-
 import ar.edu.uade.desa1.service.QrCodeService;
+import ar.edu.uade.desa1.service.TokenStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.security.core.Authentication;
 
 
 @RestController
@@ -42,14 +29,12 @@ public class DeliveryRouteController {
 
     @PostMapping
     public ResponseEntity<DeliveryRoute> createRoute(@RequestBody CreateRouteRequest request) {
-    DeliveryRoute createdRoute = deliveryRouteService.createRoute(request);
-    return ResponseEntity.ok(createdRoute);
-}
+        DeliveryRoute createdRoute = deliveryRouteService.createRoute(request);
+        return ResponseEntity.ok(createdRoute);
+    }
 
 
     private final QrCodeService qrCodeService;
-
-
 
 
     @GetMapping

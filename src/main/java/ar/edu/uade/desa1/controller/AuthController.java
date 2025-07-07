@@ -1,15 +1,14 @@
 package ar.edu.uade.desa1.controller;
 
 import ar.edu.uade.desa1.domain.request.*;
-import ar.edu.uade.desa1.domain.response.AuthLoginResponse;
-import ar.edu.uade.desa1.domain.response.AuthRegisterResponse;
-import ar.edu.uade.desa1.domain.response.SendVerificationCodeResponse;
-import ar.edu.uade.desa1.domain.response.ValidateResetTokenResponse;
-import ar.edu.uade.desa1.domain.response.VerifyCodeResponse;
+import ar.edu.uade.desa1.domain.response.*;
 import ar.edu.uade.desa1.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.management.relation.RoleNotFoundException;
 

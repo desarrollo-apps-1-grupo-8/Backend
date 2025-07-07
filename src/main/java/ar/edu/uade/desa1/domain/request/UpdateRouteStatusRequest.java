@@ -1,6 +1,5 @@
 package ar.edu.uade.desa1.domain.request;
 
-import ar.edu.uade.desa1.domain.enums.RouteStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ public class UpdateRouteStatusRequest {
     private String status;
     private Long deliveryUserId;
 
-    private String origin; 
+    private String origin;
     private String destination;
 
     private String completionCode;

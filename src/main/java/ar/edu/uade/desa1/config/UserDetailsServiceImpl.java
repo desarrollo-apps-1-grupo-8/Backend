@@ -1,6 +1,6 @@
 package ar.edu.uade.desa1.config;
+
 import ar.edu.uade.desa1.repository.UserRepository;
-import ar.edu.uade.desa1.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +18,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return (UserDetails) userRepository.findByEmail(email.toLowerCase())
-            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
     }
 }
