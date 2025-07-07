@@ -49,7 +49,8 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/api/v1/routes/history/**").hasAnyRole(USUARIO, REPARTIDOR)
             
             .requestMatchers(HttpMethod.GET, "/api/v1/routes").hasRole(REPARTIDOR)
-            .requestMatchers(HttpMethod.GET, "/api/v1/routes/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/v1/notifications/**").hasAnyRole("USUARIO", "REPARTIDOR")
+                .requestMatchers(HttpMethod.GET, "/api/v1/routes/**").authenticated()
             .anyRequest().authenticated()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
