@@ -174,7 +174,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
     @Transactional
     public DeliveryRouteResponse updateRouteStatus(UpdateRouteStatusRequest request) {
         try {
-            User deliveryUser = userRepository.findById(request.getDeliveryRouteId())
+            User deliveryUser = userRepository.findById(request.getDeliveryUserId())
                     .orElseThrow(() -> new NotFoundException("Delivery user not found for id: " + request.getDeliveryUserId()));
 
             DeliveryRoute route = deliveryRouteRepository.findById(request.getDeliveryRouteId())

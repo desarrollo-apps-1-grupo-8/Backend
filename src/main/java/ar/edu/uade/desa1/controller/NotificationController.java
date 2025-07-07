@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 public class NotificationController {
 
     @Autowired
