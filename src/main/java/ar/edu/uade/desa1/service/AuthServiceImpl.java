@@ -3,31 +3,20 @@ package ar.edu.uade.desa1.service;
 import ar.edu.uade.desa1.config.JwtUtil;
 import ar.edu.uade.desa1.domain.entity.Role;
 import ar.edu.uade.desa1.domain.entity.User;
-import ar.edu.uade.desa1.domain.request.AuthLoginRequest;
-import ar.edu.uade.desa1.domain.request.AuthRegisterRequest;
-import ar.edu.uade.desa1.domain.request.PasswordResetRequest;
-import ar.edu.uade.desa1.domain.request.SendVerificationCodeRequest;
-import ar.edu.uade.desa1.domain.request.ValidateResetTokenRequest;
-import ar.edu.uade.desa1.domain.request.VerifyCodeRequest;
-import ar.edu.uade.desa1.domain.response.AuthLoginResponse;
-import ar.edu.uade.desa1.domain.response.AuthRegisterResponse;
-import ar.edu.uade.desa1.domain.response.SendVerificationCodeResponse;
-import ar.edu.uade.desa1.domain.response.ValidateResetTokenResponse;
-import ar.edu.uade.desa1.domain.response.VerifyCodeResponse;
-import ar.edu.uade.desa1.exception.EmailNotVerifiedException;
+import ar.edu.uade.desa1.domain.request.*;
+import ar.edu.uade.desa1.domain.response.*;
 import ar.edu.uade.desa1.exception.NotFoundException;
 import ar.edu.uade.desa1.exception.UserAlreadyExistsException;
 import ar.edu.uade.desa1.repository.RoleRepository;
 import ar.edu.uade.desa1.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import java.time.LocalDateTime;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.UUID;
 
@@ -102,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
 
     public void resetPassword(PasswordResetRequest request) {
         User user = userRepository.findByEmail(request.getEmail().toLowerCase())
-            .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
         // Validar token
         if (!validateResetToken(request.getEmail(), request.getResetToken())) {
@@ -113,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
-        
+
         userRepository.save(user);
     }
 
@@ -121,13 +110,13 @@ public class AuthServiceImpl implements AuthService {
     public VerifyCodeResponse verifyCode(VerifyCodeRequest request) {
         User user = userRepository.findByEmail(request.getEmail().toLowerCase())
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-        
+
         LocalDateTime now = LocalDateTime.now();
-        
-        if (user.getVerificationCode() != null && 
-            user.getVerificationCode().equals(request.getVerificationCode()) && 
-            user.getVerificationCodeExpiry() != null && 
-            now.isBefore(user.getVerificationCodeExpiry())) {
+
+        if (user.getVerificationCode() != null &&
+                user.getVerificationCode().equals(request.getVerificationCode()) &&
+                user.getVerificationCodeExpiry() != null &&
+                now.isBefore(user.getVerificationCodeExpiry())) {
 
             if (!request.getRecoverPassword()) {
                 user.setEmailVerified(true);
@@ -140,24 +129,24 @@ public class AuthServiceImpl implements AuthService {
                 user.setVerificationCode(null);
                 user.setVerificationCodeExpiry(null);
                 userRepository.save(user);
-                
+
                 return VerifyCodeResponse.builder()
                         .success(true)
                         .message(OTP_VERIFIED_SUCCESSFULLY)
                         .resetToken(resetToken)
                         .build();
             }
-            
+
             user.setVerificationCode(null);
             user.setVerificationCodeExpiry(null);
             userRepository.save(user);
-            
+
             return VerifyCodeResponse.builder()
                     .success(true)
                     .message(OTP_VERIFIED_SUCCESSFULLY)
                     .build();
         }
-        
+
         return VerifyCodeResponse.builder()
                 .success(false)
                 .message(INVALID_VERIFICATION_CODE)
@@ -195,8 +184,8 @@ public class AuthServiceImpl implements AuthService {
     public ValidateResetTokenResponse validateResetToken(ValidateResetTokenRequest request) {
         boolean isValid = validateResetToken(request.getEmail(), request.getReset_token());
         return ValidateResetTokenResponse.builder()
-            .valid(isValid)
-            .build();
+                .valid(isValid)
+                .build();
     }
 
     private String generateVerificationCode() {
@@ -208,13 +197,13 @@ public class AuthServiceImpl implements AuthService {
 
     public boolean validateResetToken(String email, String resetToken) {
         User user = userRepository.findByEmail(email.toLowerCase())
-            .orElseThrow(() -> new NotFoundException("Usuario con email " + email + " no encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuario con email " + email + " no encontrado"));
 
         LocalDateTime now = LocalDateTime.now();
         return user.getResetToken() != null &&
-                       user.getResetToken().equals(resetToken) &&
-                       user.getResetTokenExpiry() != null &&
-                       now.isBefore(user.getResetTokenExpiry());
+                user.getResetToken().equals(resetToken) &&
+                user.getResetTokenExpiry() != null &&
+                now.isBefore(user.getResetTokenExpiry());
     }
 }
 

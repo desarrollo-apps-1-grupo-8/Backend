@@ -1,10 +1,10 @@
 package ar.edu.uade.desa1.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -56,13 +56,13 @@ public class User implements UserDetails {
 
     @Column
     private LocalDateTime resetTokenExpiry;
-    
+
     @Column(name = "verification_code", length = 64)
     private String verificationCode;
-    
+
     @Column(name = "verification_code_expiry")
     private LocalDateTime verificationCodeExpiry;
-    
+
     @Column(name = "email_verified")
     private Boolean emailVerified;
 
@@ -83,12 +83,12 @@ public class User implements UserDetails {
 
 
     public String getPushToken() {
-    return pushToken;
+        return pushToken;
     }
 
     public void setPushToken(String pushToken) {
-    this.pushToken = pushToken;
+        this.pushToken = pushToken;
     }
-   
+
 
 }

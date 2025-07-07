@@ -1,6 +1,5 @@
 package ar.edu.uade.desa1.domain.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,7 @@ public class AuthLoginResponse {
 
     private boolean success;
     private String token;
-    private Boolean active; 
+    private Boolean active;
     private String status;
 
     public AuthLoginResponse(boolean success, String token, Boolean active, String status) {

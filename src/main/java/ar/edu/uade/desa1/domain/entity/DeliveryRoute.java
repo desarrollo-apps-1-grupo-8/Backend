@@ -2,7 +2,10 @@ package ar.edu.uade.desa1.domain.entity;
 
 import ar.edu.uade.desa1.domain.enums.RouteStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 

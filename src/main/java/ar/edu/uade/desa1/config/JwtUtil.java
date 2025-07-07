@@ -1,7 +1,8 @@
 package ar.edu.uade.desa1.config;
 
 import ar.edu.uade.desa1.domain.entity.User;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 

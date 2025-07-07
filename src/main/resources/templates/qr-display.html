@@ -233,148 +233,148 @@
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>🔗 Generador QR</h1>
-            <p>Genera códigos QR para tus rutas de entrega</p>
-        </div>
-
-        <form id="qrForm">
-            <div class="form-group">
-                <label for="routeId">ID de la Ruta:</label>
-                <input type="number" id="routeId" name="routeId" placeholder="Ingresa el ID de la ruta" required>
-            </div>
-
-            <button type="submit" class="btn" id="generateBtn">
-                Generar Código QR
-            </button>
-        </form>
-
-        <div class="loading" id="loading">
-            ⏳ Generando código QR...
-        </div>
-
-        <div class="error" id="error"></div>
-        <div class="success" id="success"></div>
-
-        <div class="qr-container" id="qrContainer">
-            <p>Ingresa un ID de ruta y haz clic en "Generar Código QR"</p>
-        </div>
-
+<div class="container">
+    <div class="header">
+        <h1>🔗 Generador QR</h1>
+        <p>Genera códigos QR para tus rutas de entrega</p>
     </div>
 
-    <script>
-        const form = document.getElementById('qrForm');
-        const routeIdInput = document.getElementById('routeId');
-        const generateBtn = document.getElementById('generateBtn');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
-        const success = document.getElementById('success');
-        const qrContainer = document.getElementById('qrContainer');
-        const routeInfo = document.getElementById('routeInfo');
-        const routeDetails = document.getElementById('routeDetails');
+    <form id="qrForm">
+        <div class="form-group">
+            <label for="routeId">ID de la Ruta:</label>
+            <input type="number" id="routeId" name="routeId" placeholder="Ingresa el ID de la ruta" required>
+        </div>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const routeId = routeIdInput.value.trim();
-            
-            if (!routeId) {
-                showError('Por favor ingresa un ID de ruta válido');
-                return;
-            }
+        <button type="submit" class="btn" id="generateBtn">
+            Generar Código QR
+        </button>
+    </form>
 
-            // Mostrar loading
-            showLoading(true);
-            hideError();
-            hideSuccess();
+    <div class="loading" id="loading">
+        ⏳ Generando código QR...
+    </div>
 
-            try {
-                // Generar QR
-                const qrResponse = await fetch(`/api/v1/routes/qr?routeId=${routeId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+    <div class="error" id="error"></div>
+    <div class="success" id="success"></div>
 
-                if (!qrResponse.ok) {
-                    throw new Error(`Error ${qrResponse.status}: ${qrResponse.statusText}`);
+    <div class="qr-container" id="qrContainer">
+        <p>Ingresa un ID de ruta y haz clic en "Generar Código QR"</p>
+    </div>
+
+</div>
+
+<script>
+    const form = document.getElementById('qrForm');
+    const routeIdInput = document.getElementById('routeId');
+    const generateBtn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const success = document.getElementById('success');
+    const qrContainer = document.getElementById('qrContainer');
+    const routeInfo = document.getElementById('routeInfo');
+    const routeDetails = document.getElementById('routeDetails');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const routeId = routeIdInput.value.trim();
+
+        if (!routeId) {
+            showError('Por favor ingresa un ID de ruta válido');
+            return;
+        }
+
+        // Mostrar loading
+        showLoading(true);
+        hideError();
+        hideSuccess();
+
+        try {
+            // Generar QR
+            const qrResponse = await fetch(`/api/v1/routes/qr?routeId=${routeId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
+            });
 
-                const qrData = await qrResponse.json();
-                
-                // Mostrar QR
-                displayQR(qrData.qrCodeBase64);
-                
-                showSuccess('¡Código QR generado exitosamente!');
-                
-            } catch (err) {
-                console.error('Error:', err);
-                showError(`Error al generar el código QR: ${err.message}`);
-            } finally {
-                showLoading(false);
+            if (!qrResponse.ok) {
+                throw new Error(`Error ${qrResponse.status}: ${qrResponse.statusText}`);
             }
-        });
 
-        function showLoading(show) {
-            loading.style.display = show ? 'block' : 'none';
-            generateBtn.disabled = show;
+            const qrData = await qrResponse.json();
+
+            // Mostrar QR
+            displayQR(qrData.qrCodeBase64);
+
+            showSuccess('¡Código QR generado exitosamente!');
+
+        } catch (err) {
+            console.error('Error:', err);
+            showError(`Error al generar el código QR: ${err.message}`);
+        } finally {
+            showLoading(false);
         }
+    });
 
-        function showError(message) {
-            error.textContent = message;
-            error.style.display = 'block';
-        }
+    function showLoading(show) {
+        loading.style.display = show ? 'block' : 'none';
+        generateBtn.disabled = show;
+    }
 
-        function hideError() {
-            error.style.display = 'none';
-        }
+    function showError(message) {
+        error.textContent = message;
+        error.style.display = 'block';
+    }
 
-        function showSuccess(message) {
-            success.textContent = message;
-            success.style.display = 'block';
-        }
+    function hideError() {
+        error.style.display = 'none';
+    }
 
-        function hideSuccess() {
-            success.style.display = 'none';
-        }
+    function showSuccess(message) {
+        success.textContent = message;
+        success.style.display = 'block';
+    }
 
-        function displayQR(base64Image) {
-            qrContainer.innerHTML = `
-                <img src="data:image/png;base64,${base64Image}" alt="Código QR" class="qr-image">
-                <button class="download-btn" onclick="downloadQR('${base64Image}')">
-                    📥 Descargar QR
-                </button>
-            `;
-        }
+    function hideSuccess() {
+        success.style.display = 'none';
+    }
 
-        function displayRouteInfo(routeData) {
-            routeDetails.innerHTML = `
-                <p><strong>ID:</strong> ${routeData.id}</p>
-                <p><strong>Estado:</strong> ${routeData.status || 'N/A'}</p>
-                <p><strong>Usuario ID:</strong> ${routeData.userId || 'N/A'}</p>
-                <p><strong>Repartidor ID:</strong> ${routeData.deliveryUserId || 'N/A'}</p>
-                <p><strong>Fecha de Creación:</strong> ${new Date(routeData.createdAt).toLocaleString('es-ES')}</p>
-            `;
-            routeInfo.style.display = 'block';
-        }
+    function displayQR(base64Image) {
+        qrContainer.innerHTML = `
+            <img src="data:image/png;base64,${base64Image}" alt="Código QR" class="qr-image">
+            <button class="download-btn" onclick="downloadQR('${base64Image}')">
+                📥 Descargar QR
+            </button>
+        `;
+    }
 
-        function downloadQR(base64Image) {
-            const link = document.createElement('a');
-            link.href = `data:image/png;base64,${base64Image}`;
-            link.download = `qr-route-${routeIdInput.value}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    function displayRouteInfo(routeData) {
+        routeDetails.innerHTML = `
+            <p><strong>ID:</strong> ${routeData.id}</p>
+            <p><strong>Estado:</strong> ${routeData.status || 'N/A'}</p>
+            <p><strong>Usuario ID:</strong> ${routeData.userId || 'N/A'}</p>
+            <p><strong>Repartidor ID:</strong> ${routeData.deliveryUserId || 'N/A'}</p>
+            <p><strong>Fecha de Creación:</strong> ${new Date(routeData.createdAt).toLocaleString('es-ES')}</p>
+        `;
+        routeInfo.style.display = 'block';
+    }
 
-        // Limpiar formulario al cargar la página
-        window.addEventListener('load', () => {
-            form.reset();
-            qrContainer.innerHTML = '<p>Ingresa un ID de ruta y haz clic en "Generar Código QR"</p>';
-            routeInfo.style.display = 'none';
-        });
-    </script>
+    function downloadQR(base64Image) {
+        const link = document.createElement('a');
+        link.href = `data:image/png;base64,${base64Image}`;
+        link.download = `qr-route-${routeIdInput.value}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Limpiar formulario al cargar la página
+    window.addEventListener('load', () => {
+        form.reset();
+        qrContainer.innerHTML = '<p>Ingresa un ID de ruta y haz clic en "Generar Código QR"</p>';
+        routeInfo.style.display = 'none';
+    });
+</script>
 </body>
 </html> 

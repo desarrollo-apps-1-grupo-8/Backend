@@ -4,34 +4,19 @@ import ar.edu.uade.desa1.domain.entity.DeliveryRoute;
 import ar.edu.uade.desa1.domain.entity.User;
 import ar.edu.uade.desa1.domain.enums.RouteStatus;
 import ar.edu.uade.desa1.domain.request.CreateRouteRequest;
-
 import ar.edu.uade.desa1.domain.request.UpdateRouteStatusRequest;
-
 import ar.edu.uade.desa1.domain.response.DeliveryRouteResponse;
+import ar.edu.uade.desa1.exception.BadRequestException;
 import ar.edu.uade.desa1.exception.NotFoundException;
 import ar.edu.uade.desa1.repository.DeliveryRouteRepository;
 import ar.edu.uade.desa1.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.Authentication;
-
-
-import ar.edu.uade.desa1.service.FirebaseMessagingService;
-import ar.edu.uade.desa1.service.TokenStorageService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import ar.edu.uade.desa1.exception.BadRequestException;
-
-
-
 import java.util.Random;
-
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -69,13 +54,13 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
 
             DeliveryRoute savedRoute = deliveryRouteRepository.save(route);
 
-            
+
             // Notificar si la ruta está disponible
             if (route.getStatus() == RouteStatus.AVAILABLE) {
-                 
+
 
                 String token = tokenStorageService.getAnyAvailableDeliveryToken();
-                  
+
                 if (token != null) {
                     try {
                         firebaseMessagingService.sendNotification(
@@ -125,7 +110,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("User not found for id: " + userId));
-            
+
             boolean isRegularUser = user.getRole().getName().equalsIgnoreCase("USUARIO");
 
             var routes = deliveryRouteRepository.findByUserId(userId);
@@ -133,18 +118,18 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             return routes.stream().map(route -> {
                 var deliveryUserInfo = route.getDeliveryUser();
                 return DeliveryRouteResponse.builder()
-                    .id(route.getId())
-                    .userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
-                    .packageInfo(route.getPackageInfo())
-                    .deliveryUserInfo(deliveryUserInfo != null ? deliveryUserInfo.getFirstName() + " " + deliveryUserInfo.getLastName() : null)
-                    .origin(route.getOrigin())
-                    .destination(route.getDestination())
-                    .createdAt(route.getCreatedAt())
-                    .updatedAt(route.getUpdatedAt())
-                    .status(route.getStatus())
+                        .id(route.getId())
+                        .userInfo(route.getUser().getFirstName() + " " + route.getUser().getLastName())
+                        .packageInfo(route.getPackageInfo())
+                        .deliveryUserInfo(deliveryUserInfo != null ? deliveryUserInfo.getFirstName() + " " + deliveryUserInfo.getLastName() : null)
+                        .origin(route.getOrigin())
+                        .destination(route.getDestination())
+                        .createdAt(route.getCreatedAt())
+                        .updatedAt(route.getUpdatedAt())
+                        .status(route.getStatus())
 
-                    .completionCode(isRegularUser ? route.getCompletionCode() : null)
-                    .build();
+                        .completionCode(isRegularUser ? route.getCompletionCode() : null)
+                        .build();
             }).toList();
 
         } catch (Exception e) {
@@ -164,12 +149,12 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
         }
     }
 
-    
+
     private String generateRandomCode() {
         int code = 100000 + random.nextInt(900000); // Generates a number between 100000 and 999999
         return String.valueOf(code);
     }
-    
+
     @Override
     @Transactional
     public DeliveryRouteResponse updateRouteStatus(UpdateRouteStatusRequest request) {
@@ -197,20 +182,20 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
             }
 
             RouteStatus newStatus = RouteStatus.valueOf(request.getStatus());
-            
+
             if (RouteStatus.COMPLETED == newStatus) {
                 if (request.getCompletionCode() == null || !request.getCompletionCode().equals(route.getCompletionCode())) {
                     throw new RuntimeException("Código de entrega inválido. Verificar con el destinatario.");
                 }
                 route.setCompletionCode(null);
             }
-            
+
             // Generate random code when status changes to IN_PROGRESS
             if (RouteStatus.IN_PROGRESS == newStatus) {
                 route.setDeliveryUser(deliveryUser);
                 route.setCompletionCode(generateRandomCode());
-            } 
-            
+            }
+
             route.setStatus(newStatus);
             route.setUpdatedAt(LocalDateTime.now());
             DeliveryRoute savedRoute = deliveryRouteRepository.save(route);
@@ -234,8 +219,6 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     } catch (Exception e) {
                         System.err.println("Error enviando notificación de cambio de ruta: " + e.getMessage());
                     }
-                } else {
-                    System.out.println("Repartidor sin token registrado.");
                 }
             }
 
@@ -246,7 +229,7 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
                     .destination(savedRoute.getDestination())
                     .status(savedRoute.getStatus())
                     .userInfo(savedRoute.getUser().getFirstName() + " " + savedRoute.getUser().getLastName())
-                    .deliveryUserInfo(savedRoute.getDeliveryUser() != null ? savedRoute.getDeliveryUser().getFirstName() + " " + savedRoute.getDeliveryUser().getLastName(): null)
+                    .deliveryUserInfo(savedRoute.getDeliveryUser() != null ? savedRoute.getDeliveryUser().getFirstName() + " " + savedRoute.getDeliveryUser().getLastName() : null)
                     .createdAt(savedRoute.getCreatedAt())
                     .updatedAt(savedRoute.getUpdatedAt())
                     .build();
@@ -259,14 +242,13 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
     }
 
 
-
     @Override
     public List<DeliveryRouteResponse> getCompletedRoutesByUser(Long userId) {
         try {
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new NotFoundException("User not found for id: " + userId));
-                    
+
 
             List<DeliveryRoute> routes = deliveryRouteRepository.findByUserIdAndStatus(userId, RouteStatus.COMPLETED.toString());
 
@@ -307,6 +289,6 @@ public class DeliveryRouteServiceImpl implements DeliveryRouteService {
 
         } catch (Exception e) {
             throw new RuntimeException("Error getting all routes for delivery user: " + e.getMessage());
-        }    
-  }
+        }
+    }
 }

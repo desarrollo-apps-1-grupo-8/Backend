@@ -19,12 +19,11 @@ public class FlywayConfig {
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
                 .baselineOnMigrate(true)
-                .cleanDisabled(false) 
+                .cleanDisabled(false)
                 .load();
 
         flyway.clean();
         flyway.migrate();
-        
-        System.out.println("==== Migraciones de Flyway ejecutadas ====");
+
     }
 } 

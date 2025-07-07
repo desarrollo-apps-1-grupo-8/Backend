@@ -11,7 +11,7 @@ public class FirebaseMessagingService {
 
     private final OkHttpClient client = new OkHttpClient();
 
-        public void sendNotification(String title, String message, String expoPushToken, String target) throws IOException {
+    public void sendNotification(String title, String message, String expoPushToken, String target) throws IOException {
         if (!expoPushToken.startsWith("ExponentPushToken")) {
             throw new IllegalArgumentException(" Token inválido: no es un ExpoPushToken");
         }
@@ -41,8 +41,6 @@ public class FirebaseMessagingService {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 System.err.println(" Error al enviar push a Expo: " + response.code() + " - " + response.message());
-            } else {
-                System.out.println(" Push enviada con éxito. Respuesta de Expo: " + response.body().string());
             }
         }
     }

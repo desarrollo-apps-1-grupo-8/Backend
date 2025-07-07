@@ -18,10 +18,10 @@ public class EmailServiceImpl implements EmailService {
     public void sendVerificationEmail(String to, String firstName, String type, String verificationCode) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-                    message.setFrom(environment.getProperty("spring.mail.username"));
-                    message.setTo(to);
-                    message.setSubject("Verificación de cuenta - " + type);
-                    message.setText("Hola " + firstName + ", tu código de verificación es: " + verificationCode);
+            message.setFrom(environment.getProperty("spring.mail.username"));
+            message.setTo(to);
+            message.setSubject("Verificación de cuenta - " + type);
+            message.setText("Hola " + firstName + ", tu código de verificación es: " + verificationCode);
 
             javaMailSender.send(message);
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 package ar.edu.uade.desa1.domain.request;
 
-import lombok.Data;
 import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder
